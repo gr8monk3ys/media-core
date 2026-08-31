@@ -17,12 +17,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-__all__ = ["BOOKS_DIR_VAR", "MOVIES_DIR_VAR", "MUSIC_DIR_VAR", "books_dir", "media_dir",
-           "movies_dir", "music_dir"]
-
-MUSIC_DIR_VAR = "MUSIC_DIR"
-MOVIES_DIR_VAR = "MOVIES_DIR"
-BOOKS_DIR_VAR = "BOOKS_DIR"
+__all__ = ["books_dir", "media_dir", "movies_dir", "music_dir"]
 
 
 def media_dir(var: str, default: str) -> Path:
@@ -36,20 +31,20 @@ def media_dir(var: str, default: str) -> Path:
     """
     value = os.environ.get(var)
     if value is None or not value.strip():
-        return (Path.home() / default).expanduser()
+        return Path.home() / default
     return Path(value).expanduser()
 
 
 def music_dir() -> Path:
     """``$MUSIC_DIR``, default ``~/.music``."""
-    return media_dir(MUSIC_DIR_VAR, ".music")
+    return media_dir("MUSIC_DIR", ".music")
 
 
 def movies_dir() -> Path:
     """``$MOVIES_DIR``, default ``~/.movies``."""
-    return media_dir(MOVIES_DIR_VAR, ".movies")
+    return media_dir("MOVIES_DIR", ".movies")
 
 
 def books_dir() -> Path:
     """``$BOOKS_DIR``, default ``~/.books``."""
-    return media_dir(BOOKS_DIR_VAR, ".books")
+    return media_dir("BOOKS_DIR", ".books")

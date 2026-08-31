@@ -35,7 +35,7 @@ _SPACE = re.compile(r"\s+")
 
 _ARTICLES = ("the ", "a ", "an ")
 
-__all__ = ["key", "normalise", "strip_article", "strip_edition"]
+__all__ = ["fold", "key", "normalise", "strip_article", "strip_edition"]
 
 
 def strip_edition(text: str) -> str:
@@ -48,10 +48,27 @@ def strip_edition(text: str) -> str:
     return _BRACKETS.sub("", cleaned).strip()
 
 
+def fold(text: str) -> str:
+    """Punctuation to spaces, whitespace collapsed, trimmed, casefolded.
+
+    ``normalise`` without the edition-stripping — the comparable form of a
+    string, once whatever noise it carries has already been dealt with.
+
+    Public because asking *whether* a title carried edition noise means
+    computing both halves and comparing them::
+
+        fold(title) == normalise(title)   # True when there was no noise
+
+    A caller that could not reach this had to keep a private copy of the two
+    regexes below beside the question, which put the invariant on both sides of
+    a package boundary with nothing holding them together.
+    """
+    return _SPACE.sub(" ", _PUNCT.sub(" ", text)).strip().casefold()
+
+
 def normalise(text: str) -> str:
     """Strip edition noise, punctuation and casing from a title or artist."""
-    cleaned = _PUNCT.sub(" ", strip_edition(text))
-    return _SPACE.sub(" ", cleaned).strip().casefold()
+    return fold(strip_edition(text))
 
 
 def strip_article(name: str) -> str:

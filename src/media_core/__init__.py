@@ -14,15 +14,16 @@ that has to agree.
 """
 
 from media_core.export import ExportError, build_export, read_export, write_export
-from media_core.names import key, normalise, strip_article, strip_edition
+from media_core.names import fold, key, normalise, strip_article, strip_edition
 from media_core.paths import books_dir, media_dir, movies_dir, music_dir
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "ExportError",
     "books_dir",
     "build_export",
+    "fold",
     "key",
     "media_dir",
     "movies_dir",

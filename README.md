@@ -27,14 +27,28 @@ match only shows something twice. So the rules strip only noise that is
 provably not part of a title.
 
 ```python
-from media_core.names import key, normalise, strip_article, strip_edition
+from media_core.names import fold, key, normalise, strip_article, strip_edition
 
 normalise("In Utero (Deluxe Edition)")     # 'in utero'
 normalise("OK Computer - Remastered 2011") # 'ok computer'
 strip_article("The Beatles")               # 'beatles'
 strip_edition("In Utero (Deluxe Edition)") # 'In Utero'  — for a search query
 key("The Beatles", "Revolver")             # ('beatles', 'revolver')
+fold("In Utero (Deluxe Edition)")          # 'in utero deluxe edition'
 ```
+
+`fold` is `normalise` without the edition-stripping, and it is public for one
+reason: asking whether a title *carried* edition noise means computing both
+halves and comparing them.
+
+```python
+fold(title) == normalise(title)   # True when the title was already plain
+```
+
+A caller that could not reach `fold` had to keep its own copy of these regexes
+beside that question, which is exactly the duplication this package exists to
+end — with the added problem that the two halves then sat on opposite sides of
+a package boundary with nothing holding them together.
 
 `key` drops the artist's article but keeps the title's, because catalogues
 disagree about "The Beatles" vs "Beatles" while an article can be the whole
@@ -90,6 +104,11 @@ data = read_export(music_dir() / "discogs.json", "discogs/1")
 
 The envelope is `schema`, `generated_at`, an optional `username`, your sections
 in order, and an optional `coverage` last.
+
+The schema string is **opaque** to this package. Every tool so far spells it
+`name/N`, but that is their convention, not a rule here: a rule invented in this
+package would reject a tool's own spelling at the moment it tried to adopt it.
+`read_export` compares the string it is given; it never parses it.
 
 `schema` is the whole compatibility contract, which is why `read_export`
 **asserts** it instead of trusting it. The consumer is a different program than

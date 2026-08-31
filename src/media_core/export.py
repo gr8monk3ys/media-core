@@ -26,28 +26,20 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from pathlib import Path
 from typing import Any
 
-__all__ = ["ExportError", "build_export", "read_export", "schema_version", "write_export"]
+__all__ = ["ExportError", "build_export", "read_export", "write_export"]
 
-# "discogs/1", "music-library/1" — a name and an integer version. Asserting the
-# shape here catches a typo at write time; without it a bad schema string only
-# surfaces in another repo, as an unreadable file.
-_SCHEMA_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*/(\d+)$")
+# The schema string is opaque here on purpose. Every tool so far spells it
+# "name/N", but that is their convention, not this module's rule, and a rule
+# invented here would reject a tool's own spelling at the moment it tried to
+# adopt this package. `read_export` compares the string it is given; it does not
+# parse it.
 
 
 class ExportError(Exception):
     """An export file is missing, malformed, or a version we cannot read."""
-
-
-def schema_version(schema: str) -> int:
-    """The integer version out of a ``name/N`` schema string."""
-    match = _SCHEMA_RE.match(schema)
-    if match is None:
-        raise ExportError(f"{schema!r} is not a 'name/version' schema string")
-    return int(match.group(1))
 
 
 def build_export(
@@ -70,9 +62,6 @@ def build_export(
     module reads, so an export is a pure function of its inputs and its shape can
     be asserted in a test without freezing time.
     """
-    schema_version(schema)  # raises on a malformed schema string
-    if not generated_at:
-        raise ExportError("generated_at must be a non-empty timestamp string")
     doc: dict[str, Any] = {"schema": schema, "generated_at": generated_at}
     if username is not None:
         doc["username"] = username

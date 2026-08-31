@@ -16,7 +16,10 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - run: uv sync --all-extras --dev
+      # --locked, not plain sync: the committed uv.lock is the thing under
+      # test, and a lock that has drifted from pyproject should fail here
+      # rather than be silently regenerated.
+      - run: uv sync --locked --dev
       - run: uv run ruff check .
       - run: uv run mypy
       - run: uv run pytest

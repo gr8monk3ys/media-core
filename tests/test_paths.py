@@ -63,3 +63,14 @@ def test_resolved_at_call_time_not_import_time(
 def test_media_dir_takes_any_variable(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("GAMES_DIR", str(tmp_path / "g"))
     assert media_dir("GAMES_DIR", ".games") == tmp_path / "g"
+
+
+def test_home_relative_default_needs_no_expansion(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """`Path.home()` is already absolute, so the default branch expands nothing."""
+    monkeypatch.delenv("MUSIC_DIR", raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    resolved = music_dir()
+    assert resolved.is_absolute()
+    assert resolved == resolved.expanduser()

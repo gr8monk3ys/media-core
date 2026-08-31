@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from media_core.names import key, normalise, strip_article, strip_edition
+from media_core.names import fold, key, normalise, strip_article, strip_edition
 
 CORPUS_PATH = Path(__file__).parent / "fixtures" / "name_normalisation_corpus.json"
 CORPUS = json.loads(CORPUS_PATH.read_text(encoding="utf-8"))
@@ -69,3 +69,20 @@ def test_key_strips_the_article_from_the_artist_but_not_the_title() -> None:
 
 def test_key_matches_across_the_two_spellings_of_an_act() -> None:
     assert key("The Beatles", "Revolver") == key("Beatles", "Revolver (Remastered)")
+
+
+def test_fold_is_normalise_without_the_edition_stripping() -> None:
+    """The identity that lets a caller ask whether a title carried noise."""
+    for text in [c["input"] for c in CORPUS]:
+        assert normalise(text) == fold(strip_edition(text))
+
+
+def test_fold_keeps_the_edition_noise_normalise_removes() -> None:
+    assert fold("In Utero (Deluxe Edition)") == "in utero deluxe edition"
+    assert normalise("In Utero (Deluxe Edition)") == "in utero"
+
+
+def test_fold_and_normalise_agree_when_there_is_no_edition_noise() -> None:
+    """This equality IS the "is this the plain release?" question a consumer asks."""
+    assert fold("In Utero") == normalise("In Utero") == "in utero"
+    assert fold("Sgt. Pepper's") == normalise("Sgt. Pepper's") == "sgt pepper s"

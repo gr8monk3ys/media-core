@@ -14,13 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from media_core.export import (
-    ExportError,
-    build_export,
-    read_export,
-    schema_version,
-    write_export,
-)
+from media_core.export import ExportError, build_export, read_export, write_export
 
 GENERATED_AT = "2026-08-26T00:00:00+00:00"
 
@@ -50,23 +44,18 @@ def test_empty_coverage_is_still_emitted() -> None:
     assert doc["coverage"] == {}
 
 
-def test_rejects_a_malformed_schema_string() -> None:
-    with pytest.raises(ExportError, match="schema string"):
-        build_export("discogs", GENERATED_AT, collection=[])
-
-
-def test_rejects_an_empty_generated_at() -> None:
-    with pytest.raises(ExportError, match="generated_at"):
-        build_export("discogs/1", "", collection=[])
-
-
 @pytest.mark.parametrize(
-    ("schema", "version"),
-    [("discogs/1", 1), ("rym/1", 1), ("goodreads/1", 1), ("letterboxd/1", 1),
-     ("music-library/1", 1), ("music-library/12", 12)],
+    "schema",
+    ["discogs/1", "rym/1", "goodreads/1", "letterboxd/1", "music-library/1",
+     # Spellings no tool uses today. They are here because this module must not
+     # have an opinion: a rule invented here would reject a tool's own schema
+     # string at the moment it tried to adopt the package.
+     "music_library/1", "Letterboxd/1", "books.v2", "1", ""],
 )
-def test_schema_version_reads_the_real_schema_strings(schema: str, version: int) -> None:
-    assert schema_version(schema) == version
+def test_the_schema_string_is_opaque(schema: str, tmp_path: Path) -> None:
+    doc = build_export(schema, GENERATED_AT, rows=[])
+    assert doc["schema"] == schema
+    assert read_export(write_export(doc, tmp_path / "d.json"), schema) == doc
 
 
 # -- the five documents this envelope replaces ----------------------------
